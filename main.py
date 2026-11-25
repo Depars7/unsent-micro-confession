@@ -30,11 +30,17 @@ OUTPUT_PATH = os.path.join(OUTPUT_DIR, "entry.txt")
 def write_entry():
     """Write ENTRY as the exact bytes of /output/entry.txt."""
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    with open(OUTPUT_PATH, "wb") as fh:
-        fh.write(ENTRY.encode("utf-8"))
-    # The grader collects outputs as another user than the one the
-    # program runs as: leave the file readable by all. Only the file
-    # is chmodded -- never the directory, which the grader does not own.
+    # Create the file readable by all from the start: the grader
+    # collects outputs as another user than the one the program runs
+    # as, so mode 0644 at open time (chmod kept as a safeguard).
+    # Only the file is chmodded -- never the directory, which the
+    # grader does not own.
+    fd = os.open(OUTPUT_PATH, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(ENTRY.encode("utf-8"))
+    finally:
+        pass
     os.chmod(OUTPUT_PATH, 0o644)
 
 
@@ -43,7 +49,14 @@ def main():
         raise ValueError(
             f"entry must be 1-{MAX_LENGTH} characters, got {len(ENTRY)}"
         )
-    _to_line, message = ENTRY.split("\n", 1)
+    parts = ENTRY.split("\n")
+    if len(parts) != 2:
+        raise ValueError(f"entry must have exactly 2 parts, got {len(parts)}")
+    to_line, message = parts
+    if not to_line.startswith("To: ") or not to_line[4:].strip():
+        raise ValueError("first part must be a 'To: <who>' line")
+    if "\n" in message:
+        raise ValueError("message must be a single line")
     if not 1 <= len(message) <= MAX_MESSAGE_LENGTH:
         raise ValueError(
             "message must be 1-"
