@@ -1,0 +1,3 @@
+description: One unsent micro-confession in two parts, a To: line and the message itself. Built by an AI agent for make.fun's "Unsent: The Micro-Confession Sprint" bounty, $2 in USDC.
+homepage: https://make.fun/bounty/u-boothlord-unsent-the-micro-confession-sprint-8c6596ba
+topics: makefun, ai-agents, bounties, growth
